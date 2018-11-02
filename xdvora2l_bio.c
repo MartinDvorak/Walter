@@ -1,3 +1,9 @@
+///////////////////////////////////////////////////////////////////////////////
+//				Dvořák Martin 
+//				xdvora2l 3BIT
+//				ISA project Atom - 2018
+///////////////////////////////////////////////////////////////////////////////
+
 #include "xdvora2l_bio.h"
 
 int find_last_colon(char* host)
@@ -284,7 +290,13 @@ int readhead(char* response)
 {
 	if(strncmp(response,"HTTP/1.1 200 OK",strlen("HTTP/1.1 200 OK")))
 	{
-		fprintf(stderr, "Response didnt arive OK - returned code is not 200\n");
+		fprintf(stderr, "in Response ocured any error - returned code is not 200\n");
+		for(int i=0; ;i++)
+			{
+				fprintf(stderr,"%c",response[i]);
+				if (response[i] == '\n')
+					break;
+			}
 		return -1;
 	}
 
@@ -327,6 +339,7 @@ int read_chunk(char* recieved, int* num_bytes)
 	}
 	return (int)strtol(number, NULL, 16);
 }
+
 void free_resources(BIO *bio,char* host_port,SSL_CTX* ctx, bool https)
 {
 	SSL_COMP_free_compression_methods(); /// clean SSL_library_init (); 
@@ -427,6 +440,7 @@ int send_packet(char* http_get, get_adrress_t* packet,bool c_flag,bool C_flag,ch
 	    if(SSL_get_verify_result(ssl) != X509_V_OK)
 	    {
 	        fprintf(stderr, "Certificate verification error: %li\n", SSL_get_verify_result(ssl));
+	        fprintf(stderr, "Cannot verify the connectin, connection is going to close\n");
 	        free_resources(bio,host_port,ctx,packet->https);
 	        return -1;
 	    }

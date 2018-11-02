@@ -1,3 +1,10 @@
+///////////////////////////////////////////////////////////////////////////////
+//				Dvořák Martin 
+//				xdvora2l 3BIT
+//				ISA project Atom - 2018
+///////////////////////////////////////////////////////////////////////////////
+
+
 #include "xdvora2l_xml.h"
 
 xmlNode* find_chanell(xmlNode* xmlroot)
@@ -187,7 +194,7 @@ int parse(char* input,flags_t flags,bool first)
 	if(input != NULL)
     {
 		//doc = xmlReadMemory(input,strlen(input),NULL,NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
-    	doc = xmlReadFile("fit",NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
+    	doc = xmlReadFile("atom.xml",NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
     }
     else{
     	fprintf(stderr, "in packet are not any data\n");
@@ -214,11 +221,11 @@ int parse(char* input,flags_t flags,bool first)
     if(channel_title != NULL)
     {
     	printf("*** %s ***\n", channel_title);
+   		free(channel_title);
     }
     else{
     	printf("*** feed name does not set ***\n");
     }
-    free(channel_title);
     
     if(!strcmp(root_element->name,"RDF"))
     {

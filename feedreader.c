@@ -1,3 +1,8 @@
+///////////////////////////////////////////////////////////////////////////////
+//				Dvořák Martin 
+//				xdvora2l 3BIT
+//				ISA project Atom - 2018
+///////////////////////////////////////////////////////////////////////////////
 
 #include "xdvora2l_bio.h"
 #include "xdvora2l_xml.h"
@@ -130,9 +135,9 @@ int main(int argc, char** argv){
 		}		
 		 if(debug)
 		 {	
-		 	printf("###############################\n");
+		 	//printf("###############################\n");
 		 	printf("%s\n", http_get);
-			printf("###############################\n");
+			//printf("###############################\n");
 		 }
 		if((send_packet(http_get,set_packet,c_flag,C_flag,certadd,certfile,&xml_string)) == 0)
 		{

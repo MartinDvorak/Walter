@@ -17,4 +17,6 @@ clean:
 	rm feedreader
 
 tests: 
-	echo HELL
+	echo "run test scritp"
+	chmod 777 test.sh
+	./test.sh
