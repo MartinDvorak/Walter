@@ -31,8 +31,6 @@ void explicit_port(char* host,get_adrress_t* packet)
 		packet->port = atoi(&(host[colon_ptr+1]));
 		host[colon_ptr] = '\0';
 	}
-
-
 	regfree(&regex_port);
 }
 
@@ -47,17 +45,15 @@ void set_path(char* host, get_adrress_t* packet,int right_ptr)
 	{
 		packet->path = malloc(sizeof(char)*(strlen(host)-right_ptr+1));
 		strcpy(packet->path,&(host[right_ptr]));
+		host[right_ptr] = '\0';
 	}
 }
 
 void set_host(char* host, get_adrress_t* packet, int left_ptr,int right_ptr)
 {
 	packet->host = malloc(sizeof(char)*(right_ptr- left_ptr +1));
-	for(int j=0, i = left_ptr; i < right_ptr; i++,j++)
-	{
-		packet->host[j] = host[i];
-	}
-	packet->host[right_ptr- left_ptr] = '\0';
+	strcpy(packet->host,&(host[left_ptr]));
+
 }
 
 int find_rptr(char* host,int left_ptr)
@@ -106,17 +102,17 @@ get_adrress_t* examine_host(char* host)
 		return NULL;
 	}
 	
-	explicit_port(host,packet);
-
 	int right_ptr;
 	if((right_ptr = find_rptr(host,left_ptr)) == 0)
 	{
 		fprintf(stderr, "ERR not valid URL\n");
 		return NULL;
 	}
-	
+
+	set_path(host,packet,right_ptr);	
+	explicit_port(host,packet);
+
 	set_host(host,packet,left_ptr,right_ptr);
-	set_path(host,packet,right_ptr);
 
 	return packet;
 }
@@ -430,7 +426,7 @@ int send_packet(char* http_get, get_adrress_t* packet,bool c_flag,bool C_flag,ch
 	    if(BIO_do_connect(bio) <= 0)
 	    {
 	        fprintf(stderr, "Error attempting to connect\n");
-	        ERR_print_errors_fp(stderr);
+	        //ERR_print_errors_fp(stderr);
 	        free_resources(bio,host_port,ctx,packet->https);
 	        return -1;
 	    }
@@ -449,14 +445,15 @@ int send_packet(char* http_get, get_adrress_t* packet,bool c_flag,bool C_flag,ch
         /* Create and setup the connection */
 
 	host_port = get_host_port(packet);
-    bio = BIO_new_connect(host_port); // leak 416byte 6blocks
+	bio = BIO_new_connect(host_port); // leak 416byte 6blocks
     
     if(bio == NULL) { fprintf(stderr,"BIO is null\n"); return -1; }
 
     if(BIO_do_connect(bio) <= 0)
     {
-        ERR_print_errors_fp(stderr);
-        free_resources(bio,host_port,ctx,packet->https);
+        //ERR_print_errors_fp(stderr);
+        fprintf(stderr, "Error attempting to connect\n");
+	    free_resources(bio,host_port,ctx,packet->https);
         return -1;
     }
 

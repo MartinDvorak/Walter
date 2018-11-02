@@ -31,6 +31,8 @@ typedef struct{
 	xmlChar* author;
 	xmlChar* date;
 	xmlChar* email;
+	xmlChar* sy_period;
+	bool sy;
 }item_t;
 
 typedef struct{
@@ -38,12 +40,21 @@ typedef struct{
 	xmlChar* email;
 }author_t;
 
+typedef struct {
+	bool rss1;
+	bool rss2;
+	bool atom;
+	bool all;
+}type_xml_t;
+
 
 item_t init_item_t();
 
 xmlNode* get_web_info(xmlDocPtr doc,xmlNode* xmlchannel,xmlChar** channel_title);
 
 xmlNode* find_chanell(xmlNode* xmlroot);
+
+void find_type(xmlNode* xmlroot, type_xml_t* xml_type);
 
 int scan_xml(xmlNode* item);
 
@@ -55,7 +66,13 @@ void author_init(author_t* author);
 
 item_t parse_item(xmlDocPtr doc,xmlNode* item);
 
-void cat(item_t tmp,flags_t flags);
+item_t parse_atom_item(xmlDocPtr doc,xmlNode* item);
+
+item_t parse_rss1_item(xmlDocPtr doc,xmlNode* item);
+
+item_t parse_rss2_item(xmlDocPtr doc,xmlNode* item);
+
+void cat(item_t tmp,flags_t flags, bool last);
 
 void data_free(item_t tmp);
 

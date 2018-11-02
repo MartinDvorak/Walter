@@ -7,17 +7,21 @@
 
 #include "xdvora2l_xml.h"
 
+
 xmlNode* find_chanell(xmlNode* xmlroot)
 {
 	
 	if((xmlroot->type == XML_ELEMENT_NODE) && (!strcmp(xmlroot->name,"feed")))
-			return xmlroot;
-
+	{	
+		return xmlroot;
+	}
 	xmlNode* node = NULL;
 	for(node = xmlroot->children;node;node = node->next)
 	{
 		if((node->type == XML_ELEMENT_NODE) && (!strcmp(node->name,"channel")))
+		{	
 			break;
+		}
 	}
 	return node;
 }
@@ -51,6 +55,7 @@ item_t init_item_t(){
 	tmp.author = NULL;
 	tmp.date = NULL;
 	tmp.email = NULL;
+	tmp.sy_period = NULL;
 	return tmp;
 }
 
@@ -90,7 +95,7 @@ void get_author(xmlNode* item_info,xmlDocPtr doc, author_t* author)
 	else{
 		if(!strcmp(item_info->name,"author"))
 		author->name = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);			
-		else if(!strcmp(item_info->name,"name"))
+		else if(!strcmp(item_info->name,"dc:creator"))
 		author->name = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);			
 	
 	}
@@ -108,6 +113,110 @@ void author_init(author_t* author)
 {
 	author->name = NULL;
 	author->email = NULL;
+}
+item_t parse_atom_item(xmlDocPtr doc,xmlNode* item)
+{
+	item_t data = init_item_t();
+	xmlNode* item_info;
+	for(item_info = item->children; item_info; item_info = item_info->next)
+	{
+		if(item_info->type == XML_ELEMENT_NODE)
+		{
+			if(!strcmp(item_info->name,"title"))
+			{
+				data.title = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(!strcmp(item_info->name,"link"))
+			{
+				data.link = xmlGetProp(item_info, "href");
+			}
+			else if(!strcmp(item_info->name,"author"))
+			{
+				author_t author;
+				author_init(&author);
+				get_author(item_info,doc,&author);
+			 	data.author = author.name;
+			 	data.email = author.email;
+			}
+			else if(!strcmp(item_info->name,"updated"))
+			{
+				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+		}
+	}
+	return data;
+
+}
+item_t parse_rss1_item(xmlDocPtr doc,xmlNode* item)
+{
+	item_t data = init_item_t();
+	xmlNode* item_info;
+	for(item_info = item->children; item_info; item_info = item_info->next)
+	{
+		if(item_info->type == XML_ELEMENT_NODE)
+		{
+			if(!strcmp(item_info->name,"title"))
+			{
+				data.title = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(!strcmp(item_info->name,"link"))
+			{
+				data.link = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(!strcmp(item_info->name,"dc:creator"))
+			{
+			 	data.author = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(!strcmp(item_info->name,"dc:date"))
+			{
+				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+				data.sy = false;
+			}
+			else if(!strcmp(item_info->name,"sy:updateBase"))
+			{
+				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);	
+				data.sy = true;
+			}
+			else if((!strcmp(item_info->name,"sy:updatePeriod")))
+			{
+				data.sy_period = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(((!strcmp(item_info->name,"dc:title"))) && (data.title == NULL))
+			{
+				data.title = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+
+		}
+	}
+	return data;
+}
+item_t parse_rss2_item(xmlDocPtr doc,xmlNode* item)
+{
+	item_t data = init_item_t();
+	xmlNode* item_info;
+	for(item_info = item->children; item_info; item_info = item_info->next)
+	{
+		if(item_info->type == XML_ELEMENT_NODE)
+		{
+			if(!strcmp(item_info->name,"title"))
+			{
+				data.title = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(!strcmp(item_info->name,"link"))
+			{
+				data.link = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(!strcmp(item_info->name,"author"))
+			{
+			 	data.author = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(!strcmp(item_info->name,"pubDate"))
+			{
+				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+		}
+	}
+	return data;
 }
 
 item_t parse_item(xmlDocPtr doc,xmlNode* item)
@@ -128,7 +237,7 @@ item_t parse_item(xmlDocPtr doc,xmlNode* item)
 				if(data.link == NULL)
 					data.link = xmlGetProp(item_info, "href");
 			}
-			else if((!strcmp(item_info->name,"author"))||(!strcmp(item_info->name,"name")))
+			else if((!strcmp(item_info->name,"author"))||(!strcmp(item_info->name,"dc:creator")))
 			{
 				author_t author;
 				author_init(&author);
@@ -137,9 +246,23 @@ item_t parse_item(xmlDocPtr doc,xmlNode* item)
 			 	data.email = author.email;
 			}
 			else if((!strcmp(item_info->name,"updated")) || (!strcmp(item_info->name,"pubDate"))
-				 || (!strcmp(item_info->name,"date")))
+				 || (!strcmp(item_info->name,"dc:date")))
 			{
 				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+				data.sy = false;
+			}
+			else if(!strcmp(item_info->name,"sy:updateBase"))
+			{
+				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);	
+				data.sy = true;
+			}
+			else if((!strcmp(item_info->name,"sy:updatePeriod")))
+			{
+				data.sy_period = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
+			}
+			else if(((!strcmp(item_info->name,"dc:title"))) && (data.title == NULL))
+			{
+				data.title = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
 			}
 
 		}
@@ -147,7 +270,7 @@ item_t parse_item(xmlDocPtr doc,xmlNode* item)
 	return data;
 }
 
-void cat(item_t tmp,flags_t flags)
+void cat(item_t tmp,flags_t flags, bool last)
 {
 	if((tmp.title != NULL)&&(true))
 		printf("%s\n", tmp.title);
@@ -163,10 +286,13 @@ void cat(item_t tmp,flags_t flags)
 	if((tmp.email != NULL)&&(flags.a_flag))		
 		printf("Email: %s\n", tmp.email);
 
-	if((tmp.date != NULL)&&(flags.T_flag))
+	if(((tmp.date != NULL)&&(flags.T_flag)) && ((!tmp.sy) || (tmp.sy_period == NULL)))
 		printf("Aktualizace: %s\n", tmp.date);
-	
-	if((flags.u_flag)||(flags.a_flag)||(flags.T_flag))
+	else if(((tmp.date != NULL)&&(flags.T_flag)) && (tmp.sy) && (tmp.sy_period != NULL))
+		printf("Periodická aktualizace od: %s s krokem: %s\n", tmp.date,tmp.sy_period);
+
+
+	if(((flags.u_flag)||(flags.a_flag)||(flags.T_flag))&&(!last))
 		printf("\n");
 }
 
@@ -182,10 +308,43 @@ void data_free(item_t tmp)
 		free(tmp.date);
 	if(tmp.email != NULL)
 		free(tmp.email);
+	if(tmp.sy_period != NULL)
+		free(tmp.sy_period);
+
+}
+
+void xml_type_init(type_xml_t* type)
+{
+	type->rss1 = false;
+	type->rss2 = false;
+	type->atom = false;
+	type->all = false;
+}
+
+void find_type(xmlNode* xmlroot, type_xml_t* xml_type)
+{
+	if((xmlroot->type == XML_ELEMENT_NODE) && (!strcmp(xmlroot->name,"feed")))
+	{
+		xml_type->atom = true;
+	}
+	else if((xmlroot->type == XML_ELEMENT_NODE) && (!strcmp(xmlroot->name,"rss")))
+	{
+		xml_type->rss2 = true;
+	}
+	else if((xmlroot->type == XML_ELEMENT_NODE) && (!strcmp(xmlroot->name,"RDF")))
+	{
+		xml_type->rss1 = true;
+	}
+	else{
+		xml_type->all = true;
+	}
 }
 
 int parse(char* input,flags_t flags,bool first)
 {
+	type_xml_t xml_type;
+	xml_type_init(&xml_type);
+	
 	xmlDoc *doc = NULL;
     xmlNode *root_element = NULL;
 
@@ -193,8 +352,8 @@ int parse(char* input,flags_t flags,bool first)
     
 	if(input != NULL)
     {
-		//doc = xmlReadMemory(input,strlen(input),NULL,NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
-    	doc = xmlReadFile("atom.xml",NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
+		doc = xmlReadMemory(input,strlen(input),NULL,NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
+    	//doc = xmlReadFile("rss2.xml",NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
     }
     else{
     	fprintf(stderr, "in packet are not any data\n");
@@ -210,6 +369,8 @@ int parse(char* input,flags_t flags,bool first)
 
     xmlNode* channel = NULL;
     channel = find_chanell(root_element);
+
+    find_type(root_element,&xml_type);
     
     xmlChar* channel_title = NULL;
     xmlNode* item = NULL;
@@ -230,17 +391,29 @@ int parse(char* input,flags_t flags,bool first)
     if(!strcmp(root_element->name,"RDF"))
     {
     	item = channel;
+    	xml_type.rss1 = true;
     }
     
     item_t data;
+    bool last = false;
     for( ;item; item = item->next)
     {
     	if(item->type == XML_ELEMENT_NODE)
     	{
     		if((!strcmp(item->name,"item"))||(!strcmp(item->name,"entry")))
     		{
-    			data = parse_item(doc,item);
-    			cat(data,flags);
+    			if(xml_type.atom)
+    				data = parse_atom_item(doc,item);
+    			else if(xml_type.rss1)
+    				data = parse_rss1_item(doc,item);
+    			else if(xml_type.rss2)
+    				data = parse_rss2_item(doc,item);
+    			else{
+    				data = parse_item(doc,item);
+    			}
+    			if(!(item->next))
+    				last = true;
+    			cat(data,flags,last);
     			data_free(data);
     		}
     	}

@@ -40,6 +40,7 @@ int main(int argc, char** argv){
 
 	init_flag(&flags);
 	bool f_flag = false,c_flag = false,C_flag = false;
+	bool URL_flag = false;
 	
 	char* feedfile = NULL;
 	char* certfile = NULL;
@@ -56,49 +57,87 @@ int main(int argc, char** argv){
 		return 0;
 	}
 
-	while((arg = getopt(argc,argv, "f:c:C:Tau")) != -1)
-	{ // preprocesing arguments
-		switch(arg)
+	for(int i=1; i < argc; i++)
+	{
+		if(argv[i][0] == '-')
 		{
-			case 'f':
-					f_flag = true;
-					feedfile = optarg;
-					break;
-			case 'c':
-					c_flag = true;
-					certfile = optarg;
-					break;
-			case 'C':
-					C_flag = true;
-					certadd = optarg;
-					break;					
-			case 'T':
-					flags.T_flag = true;
-					break;
-			case 'a':
-					flags.a_flag = true;
-					break;
-			case 'u':
-					flags.u_flag = true;
-					break;
-			case '?':
+			if(!strcmp(argv[i],"-f"))
+			{
+				f_flag = true;
+				if(i+1 < argc)
+				{
+					if(argv[++i][0] != '-')
+						feedfile = argv[i];
+					else{
+						print_help();
+						return 0;}
+				}
+				else{
 					print_help();
-					return 0;		
-			default:
-			abort();			
+					return 0;
+				}
+			}
+			else if(!strcmp(argv[i],"-c"))
+			{
+				c_flag = true;
+				if(i+1 < argc)
+				{
+					if(argv[++i][0] != '-')
+						certfile = argv[i];
+					else{
+						print_help();
+						return 0;}
+				}
+				else{
+					print_help();
+					return 0;
+				}
+			}
+			else if(!strcmp(argv[i],"-C"))
+			{
+				C_flag = true;
+				if(i+1 < argc)
+				{
+					if(argv[++i][0] != '-')
+						certadd = argv[i];
+					else{
+						print_help();
+						return 0;}
+				}
+				else{
+					print_help();
+					return 0;
+				}
+			}
+			else if(!strcmp(argv[i],"-T"))
+			{
+				flags.T_flag = true;
+			}
+			else if(!strcmp(argv[i],"-a"))
+			{
+				flags.a_flag = true;
+			}
+			else if(!strcmp(argv[i],"-u"))
+			{
+				flags.u_flag = true;
+			}
+			else{
+				print_help();
+				return 0;
+			}
 		}
-
+		else if(!URL_flag)
+		{
+			URL_flag = true;
+			URL = argv[i];
+		}
+		else{
+			print_help();
+			return 0;
+		}
 	}
 
-   if((optind +1 == argc) && (f_flag == false))
-   {
-   	URL = argv[optind++];
-   }
-   if (optind < argc) {
-        print_help();
-        return 0;
-    }
-   else if((URL == NULL) && (feedfile == NULL)){
+   if(((URL == NULL) && (feedfile == NULL)) ||((URL != NULL) && (feedfile != NULL))){
 		fprintf(stderr, "not specificed input file\n");
 		print_help();
 		return 0;
@@ -123,10 +162,10 @@ int main(int argc, char** argv){
 
 	while((indicate_eof = get_next_host(URL,f_flag,feed_file,&host)) != EOF)
 	{
-		if((set_packet = examine_host(host)) == NULL)
-			return -1;
-
 		char* http_get = NULL;
+		if((set_packet = examine_host(host)) != NULL)
+		{
+
 		http_get = fill_packet(set_packet);
 		if(http_get == NULL)
 		{
@@ -144,6 +183,7 @@ int main(int argc, char** argv){
 			(void)parse(xml_string,flags,first);
 			first = false;
 		}
+		
 		// printf("\n");
 		if(xml_string != NULL)
 			free(xml_string);
@@ -154,13 +194,15 @@ int main(int argc, char** argv){
 			free(set_packet->path);
 		if(set_packet != NULL)
 			free(set_packet);
+		}
 		if(http_get != NULL)
 			free(http_get);
 		if(host != NULL)
 			free(host);
-		
+
 		if(!f_flag)
 			break;
+
 	}
 
 	if(feed_file != NULL)
