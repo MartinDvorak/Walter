@@ -1,0 +1,36 @@
+///////////////////////////////////////////////////////////////////////////////
+//				Dvořák Martin 
+//				xdvora2l 3BIT
+//				ISA project Atom - 2018
+///////////////////////////////////////////////////////////////////////////////
+
+readme k projektu ISA. 
+Aplikace implementuje HTTPS, HTTP, Atom RSS1.0 a RSS2.0
+
+adresácř obsahuje:
+readme 			- tento soubor s popisem jak spustet projekt a jeho omezeni
+manual.pfd 		- dokumentace k projektu 
+Makefile 		- makefile pro automatické spustění
+/source 		- složka s zdrojovými soubory
+/source/xdvora2l_xml.h 	- hlavičkový soubor s funkcemi pro parsovací část
+/source/xdvora2l_xml.c 	- zdrojový soubor s funkcemi pro parsovací čast 
+/source/xdvora2l_bio.h 	- hlavičkový soubor s funkcemi pro parsovací část
+/source/xdvora2l_bio.c 	- zdrojový soubor s funkcemi pro parsovací čast 
+/source/feedreader.c   	- zdrojový soubor s funkcí main a zpracování argumentů
+/bin 			- prázdná složka, pro kládání .o souborů 
+test.sh 		- testovací script
+/feeds			- složka s potřebnými soubory k spouštění testů
+
+
+make 		spustění
+make clean 	vyčitění od přeložených souborů
+make tests 	spustění přiložench testů
+
+spustění: feedreader <URL | -f <feedfile>> [-c <certfile>] [-C <certaddr>] [-T] [-a] [-u]
+pro více podrobností viz manual.pdf
+
+příklad spuštění:
+#make 
+#./feedreader http://www.fit.vutbr.cz/news/news-rss.php -a
+#make clean
+

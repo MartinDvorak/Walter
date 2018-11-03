@@ -1,0 +1,6 @@
+https://en.wikipedia.org/w/api.php?hidebots=1&days=7&limit=50&hidewikidata=1&action=feedrecentchanges&feedformat=atom
+
+#The register
+
+https://www.theregister.co.uk/hardware/headlines.atom
+https://what-if.xkcd.com/feed.atom
