@@ -24,7 +24,7 @@ test.sh 		- testovací script
 
 make 		spustění
 make clean 	vyčitění od přeložených souborů
-make tests 	spustění přiložench testů
+make test 	spustění přiložench testů
 
 spustění: feedreader <URL | -f <feedfile>> [-c <certfile>] [-C <certaddr>] [-T] [-a] [-u]
 pro více podrobností viz manual.pdf

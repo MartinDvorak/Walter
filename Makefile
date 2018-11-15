@@ -17,7 +17,7 @@ clean:
 	mkdir bin
 	rm feedreader
 
-tests: 
+test: 
 	echo "run test scritp"
 	chmod 777 test.sh
 	./test.sh

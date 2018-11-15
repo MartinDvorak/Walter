@@ -174,9 +174,9 @@ int main(int argc, char** argv){
 		}		
 		 if(debug)
 		 {	
-		 	//printf("###############################\n");
+		 	printf("###############################\n");
 		 	printf("%s\n", http_get);
-			//printf("###############################\n");
+			printf("###############################\n");
 		 }
 		if((send_packet(http_get,set_packet,c_flag,C_flag,certadd,certfile,&xml_string)) == 0)
 		{
