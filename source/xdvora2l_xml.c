@@ -10,7 +10,7 @@
 
 xmlNode* find_chanell(xmlNode* xmlroot)
 {
-	
+	// look for root item
 	if((xmlroot->type == XML_ELEMENT_NODE) && (!strcmp(xmlroot->name,"feed")))
 	{	
 		return xmlroot;
@@ -27,7 +27,7 @@ xmlNode* find_chanell(xmlNode* xmlroot)
 }
 
 xmlNode* get_web_info(xmlDocPtr doc,xmlNode* xmlchannel,xmlChar** channel_title)
-{
+{	// looking for web info about feed
 	xmlNode* meta = NULL;
 
 	for(meta = xmlchannel->children; meta; meta = meta->next)
@@ -75,7 +75,7 @@ void get_author(xmlNode* item_info,xmlDocPtr doc, author_t* author)
 	xmlNode* tmp = item_info;
 	int count = scan_xml(tmp);
 	if(count)
-	{
+	{ // i nthis case has subitems like name or email
 		for(item_info = item_info->children; item_info; item_info = item_info->next)
 		{
 			if(item_info->type == XML_ELEMENT_NODE)
@@ -92,7 +92,7 @@ void get_author(xmlNode* item_info,xmlDocPtr doc, author_t* author)
 		}
 
 	}
-	else{
+	else{ // have only atrribute 
 		if(!strcmp(item_info->name,"author"))
 		author->name = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);			
 		else if(!strcmp(item_info->name,"dc:creator"))
@@ -115,7 +115,7 @@ void author_init(author_t* author)
 	author->email = NULL;
 }
 item_t parse_atom_item(xmlDocPtr doc,xmlNode* item)
-{
+{	// in atom is complicated structure person
 	item_t data = init_item_t();
 	xmlNode* item_info;
 	for(item_info = item->children; item_info; item_info = item_info->next)
@@ -127,11 +127,11 @@ item_t parse_atom_item(xmlDocPtr doc,xmlNode* item)
 				data.title = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
 			}
 			else if(!strcmp(item_info->name,"link"))
-			{
+			{ // URL is hide in atrib name href
 				data.link = xmlGetProp(item_info, "href");
 			}
 			else if(!strcmp(item_info->name,"author"))
-			{
+			{ // author can obtain email address
 				author_t author;
 				author_init(&author);
 				get_author(item_info,doc,&author);
@@ -148,7 +148,7 @@ item_t parse_atom_item(xmlDocPtr doc,xmlNode* item)
 
 }
 item_t parse_rss1_item(xmlDocPtr doc,xmlNode* item)
-{
+{ // parse article in rss1 format
 	item_t data = init_item_t();
 	xmlNode* item_info;
 	for(item_info = item->children; item_info; item_info = item_info->next)
@@ -162,11 +162,11 @@ item_t parse_rss1_item(xmlDocPtr doc,xmlNode* item)
 			else if(!strcmp(item_info->name,"link"))
 			{
 				data.link = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
-			}
+			}// dublin core module
 			else if(!strcmp(item_info->name,"dc:creator"))
 			{
 			 	data.author = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
-			}
+			}// dublin core
 			else if(!strcmp(item_info->name,"dc:date"))
 			{
 				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
@@ -176,11 +176,11 @@ item_t parse_rss1_item(xmlDocPtr doc,xmlNode* item)
 			{
 				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);	
 				data.sy = true;
-			}
+			} // syndication module
 			else if((!strcmp(item_info->name,"sy:updatePeriod")))
 			{
 				data.sy_period = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
-			}
+			}// dublin core
 			else if(((!strcmp(item_info->name,"dc:title"))) && (data.title == NULL))
 			{
 				data.title = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
@@ -191,7 +191,7 @@ item_t parse_rss1_item(xmlDocPtr doc,xmlNode* item)
 	return data;
 }
 item_t parse_rss2_item(xmlDocPtr doc,xmlNode* item)
-{
+{ // run rss2 parse function
 	item_t data = init_item_t();
 	xmlNode* item_info;
 	for(item_info = item->children; item_info; item_info = item_info->next)
@@ -220,7 +220,7 @@ item_t parse_rss2_item(xmlDocPtr doc,xmlNode* item)
 }
 
 item_t parse_item(xmlDocPtr doc,xmlNode* item)
-{
+{ // can not reckognise version of xml then run universal parse function
 	item_t data = init_item_t();
 	xmlNode* item_info;
 	for(item_info = item->children; item_info; item_info = item_info->next)
@@ -238,28 +238,28 @@ item_t parse_item(xmlDocPtr doc,xmlNode* item)
 					data.link = xmlGetProp(item_info, "href");
 			}
 			else if((!strcmp(item_info->name,"author"))||(!strcmp(item_info->name,"dc:creator")))
-			{
+			{ // ofr atom and rss 1 and 2 
 				author_t author;
 				author_init(&author);
 				get_author(item_info,doc,&author);
 			 	data.author = author.name;
 			 	data.email = author.email;
-			}
+			} // dublin core module or atom
 			else if((!strcmp(item_info->name,"updated")) || (!strcmp(item_info->name,"pubDate"))
 				 || (!strcmp(item_info->name,"dc:date")))
 			{
 				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
 				data.sy = false;
-			}
+			} // syndication module
 			else if(!strcmp(item_info->name,"sy:updateBase"))
 			{
 				data.date = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);	
 				data.sy = true;
-			}
+			} // syndication module
 			else if((!strcmp(item_info->name,"sy:updatePeriod")))
 			{
 				data.sy_period = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
-			}
+			} // dublin core module
 			else if(((!strcmp(item_info->name,"dc:title"))) && (data.title == NULL))
 			{
 				data.title = xmlNodeListGetString(doc, item_info->xmlChildrenNode, 1);
@@ -269,7 +269,7 @@ item_t parse_item(xmlDocPtr doc,xmlNode* item)
 	}
 	return data;
 }
-
+// chcecking for set user parametr for information - all information are colected
 void cat(item_t tmp,flags_t flags, bool last)
 {
 	if((tmp.title != NULL)&&(true))
@@ -314,7 +314,7 @@ void data_free(item_t tmp)
 }
 
 void xml_type_init(type_xml_t* type)
-{
+{ 
 	type->rss1 = false;
 	type->rss2 = false;
 	type->atom = false;
@@ -351,7 +351,7 @@ int parse(char* input,flags_t flags,bool first)
 	//doc = xmlReadFile(input, NULL, 0);
     
 	if(input != NULL)
-    {
+    {// set atriv for parse xml
 		doc = xmlReadMemory(input,strlen(input),NULL,NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
     	//doc = xmlReadFile("rss2.xml",NULL,XML_PARSE_NSCLEAN | XML_PARSE_NOERROR |XML_PARSE_NOWARNING |XML_PARSE_NOBLANKS);
     }
@@ -380,11 +380,11 @@ int parse(char* input,flags_t flags,bool first)
     	printf("\n");
     }
     if(channel_title != NULL)
-    {
+    { // chanell title
     	printf("*** %s ***\n", channel_title);
    		free(channel_title);
     }
-    else{
+    else{ // chanell has not any title 
     	printf("*** feed name does not set ***\n");
     }
     
@@ -397,7 +397,7 @@ int parse(char* input,flags_t flags,bool first)
     item_t data;
     bool last = false;
     for( ;item; item = item->next)
-    {
+    {// body of feed, articles
     	if(item->type == XML_ELEMENT_NODE)
     	{
     		if((!strcmp(item->name,"item"))||(!strcmp(item->name,"entry")))

@@ -8,7 +8,7 @@ readme k projektu ISA.
 Aplikace implementuje HTTPS, HTTP, Atom RSS1.0 a RSS2.0
 
 adresácř obsahuje:
-readme 			- tento soubor s popisem jak spustet projekt a jeho omezeni
+readme 			- soubor s popisem jak spustet projekt a jeho omezeni
 manual.pfd 		- dokumentace k projektu 
 Makefile 		- makefile pro automatické spustění
 /source 		- složka s zdrojovými soubory

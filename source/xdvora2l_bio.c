@@ -22,7 +22,7 @@ void explicit_port(char* host,get_adrress_t* packet)
 {
 	regex_t regex_port;
 	int reg_port;
-
+	// regex prepera and use
 	reg_port = regcomp(&regex_port, ":[0-9][0-9]*$",0);
 	reg_port = regexec(&regex_port,host,0,NULL,0);
 	if(reg_port != REG_NOMATCH)
@@ -36,6 +36,7 @@ void explicit_port(char* host,get_adrress_t* packet)
 
 void set_path(char* host, get_adrress_t* packet,int right_ptr)
 {
+	// cpy path to packet 
 	if((strlen(host)-right_ptr+1) == 1)
 	{
 		packet->path = malloc(sizeof(char)*(2));
@@ -50,14 +51,14 @@ void set_path(char* host, get_adrress_t* packet,int right_ptr)
 }
 
 void set_host(char* host, get_adrress_t* packet, int left_ptr,int right_ptr)
-{
+{   
 	packet->host = malloc(sizeof(char)*(right_ptr- left_ptr +1));
 	strcpy(packet->host,&(host[left_ptr]));
 
 }
 
 int find_rptr(char* host,int left_ptr)
-{
+{ // looking for slash first from right
 	int right_ptr = strlen(host);
 	for(int i = left_ptr; i < strlen(host);i++)
 	{
@@ -122,16 +123,24 @@ int get_line(char* row,FILE* feed_file)
 {
 	int c;
 	int i = 0;
+	bool commet = false;
 	do
 	{
 		c = fgetc(feed_file);
-
+		//end of line or file
 		if((c == '\n') ||(c == EOF))
 		{
 			row[i] = '\0';
 			break;
+   		}// remove coments in middle line
+   		else if(c == '#')
+   		{
+   			commet = true;
    		}
-   		row[i++] = c;
+   		else if(!commet){
+   			row[i++] = c;
+   		}
+
 	}while (c != EOF);
 	
 	return c;
@@ -153,7 +162,7 @@ int get_next_host(char* URL, bool f, FILE* feed_file,char** host)
 		regex_t regex_hashtag;
 		int reg_space;
 		int reg_hashtag;
-
+		// empty line
 		reg_space = regcomp(&regex_space, "^\x20*$",0);
 		reg_hashtag = regcomp(&regex_hashtag, "^#.*$",0);
 		
@@ -362,13 +371,15 @@ int send_packet(char* http_get, get_adrress_t* packet,bool c_flag,bool C_flag,ch
      SSL_library_init (); 
 
      bool debug = false;
-
+    /*
+	Some code (BIO cocket) are taken from recommended literature https://developer.ibm.com/tutorials/l-openssl/
+	All rights belongs authors of this article. 	
+    */
 	if(packet->https)
 	{
 		 /* Set up the SSL context */
     	ctx = SSL_CTX_new(SSLv23_client_method());
 		/* Load the trust store */
-		
 		if((c_flag) && (C_flag))
 		{
 			if((! SSL_CTX_load_verify_locations(ctx, certfile, NULL))&&
@@ -459,15 +470,15 @@ int send_packet(char* http_get, get_adrress_t* packet,bool c_flag,bool C_flag,ch
 
     }
 
-    /* Send the request */
-   BIO_write(bio, http_get, strlen(http_get));
-    /* Read in the response */
-
+    // write socket
+   	BIO_write(bio, http_get, strlen(http_get));
+   
 	char bio_read[BIO_SIZE];
   	int byte_read; 
 
    	char* response = NULL;
    	int  response_size = 0;
+	// read response in socket
 	for(;;)
     {
        	memset(bio_read,0,BIO_SIZE);

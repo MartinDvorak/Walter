@@ -51,6 +51,16 @@ echo "./feedreader https://wis.fit.vutbr.cz/FIT/ -c ./feeds/cacert.crt
 INSTANCE=$((1 + INSTANCE))
 echo "
 INSTANCE $INSTANCE
+Note: test https comunication with dedicated certificates in folder
+	aplication must end corectly because response is not in xml format"
+echo "./feedreader https://wis.fit.vutbr.cz/FIT/ -C ./feeds
+"
+./feedreader https://wis.fit.vutbr.cz/FIT/ -C ./feeds
+
+
+INSTANCE=$((1 + INSTANCE))
+echo "
+INSTANCE $INSTANCE
 Note: test https comunication without dedicated certificates
 	aplication must end corectly because connection is not safe and secure"
 echo "./feedreader https://wis.fit.vutbr.cz/FIT/

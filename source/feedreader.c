@@ -180,6 +180,7 @@ int main(int argc, char** argv){
 		 }
 		if((send_packet(http_get,set_packet,c_flag,C_flag,certadd,certfile,&xml_string)) == 0)
 		{
+
 			(void)parse(xml_string,flags,first);
 			first = false;
 		}
